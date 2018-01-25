@@ -1,16 +1,18 @@
 (ns coras.core
-  (:require [clojure.core.async :as as])
+  (:require [clojure.core.async :as a])
+  (:require [clojure.data.json :as json])
+  (:require [coras.driver :as driver])
+  (:require [coras.generators :as g])
   (:gen-class))
 
-(defn run-timer [n]
-  (as/go-loop [ticks 1]
-    (do
-      (println "tick..")
-      (Thread/sleep 1000)
-      (if (= ticks n) (println "bye!") (recur (+ 1 ticks))))))
-
 (defn -main
-  "I don't do a whole lot ... yet."
   [& args]
-  (println "Hello core.async")
-)
+  (println "Initializing a channel..")
+  (let [channel (a/chan 10)
+        events (g/generate-events "M1" 10)]
+    (doseq [e events]
+      (a/>!! channel e))
+    (driver/run channel)))
+
+(defn map-to-output-line [amap]
+  (json/write-str amap ))

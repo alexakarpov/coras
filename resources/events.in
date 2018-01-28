@@ -1,0 +1,17 @@
+{"type":"CycleComplete","machine_id":"M1","timestamp":"2018-01-28T02:56:32Z"}
+{"type":"CycleComplete","machine_id":"M1","timestamp":"2018-01-28T02:57:52Z"}
+{"type":"CycleComplete","machine_id":"M2","timestamp":"2018-01-28T02:57:12Z"}
+{"type":"CycleComplete","machine_id":"M2","timestamp":"2018-01-28T02:58:32Z"}
+{"type":"CycleComplete","machine_id":"M1","timestamp":"2018-01-28T02:59:12Z"}
+{"type":"CycleComplete","machine_id":"M2","timestamp":"2018-01-28T02:59:52Z"}
+{"type":"CycleComplete","machine_id":"M1","timestamp":"2018-01-28T03:00:32Z"}
+{"type":"CycleComplete","machine_id":"M2","timestamp":"2018-01-28T03:01:12Z"}
+{"type":"CycleComplete","machine_id":"M1","timestamp":"2018-01-28T03:01:52Z"}
+{"type":"CycleComplete","machine_id":"M2","timestamp":"2018-01-28T03:02:32Z"}
+{"type":"CycleComplete","machine_id":"M1","timestamp":"2018-01-28T02:56:32Z"}
+{"type":"CycleComplete","machine_id":"M1","timestamp":"2018-01-28T02:57:12Z"}
+{"type":"CycleComplete","machine_id":"M2","timestamp":"2018-01-28T02:57:52Z"}
+{"type":"CycleComplete","machine_id":"M1","timestamp":"2018-01-28T02:58:32Z"}
+{"type":"CycleComplete","machine_id":"M2","timestamp":"2018-01-28T02:59:52Z"}
+{"type":"CycleComplete","machine_id":"M2","timestamp":"2018-01-28T02:59:12Z"}
+{"type":"CycleComplete","machine_id":"M2","timestamp":"2018-01-28T03:00:32Z"}

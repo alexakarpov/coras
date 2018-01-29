@@ -22,6 +22,13 @@
   (let [[_ type machine-id timestamp] (re-matches event-re line)
         event (make-event machine-id
                           :type type
-                          :timestamp (f/parse (f/formatters :date-time-no-ms)
-                                              timestamp))]
+                          :timestamp timestamp)]
     event))
+
+(defn timeout-event [machine-id]
+  (make-event machine-id
+              :type "NonProductionLimitReached"))
+
+(defn alert-event [machine-id]
+  (make-event machine-id
+              :type "AlarmOpened"))

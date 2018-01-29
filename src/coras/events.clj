@@ -1,23 +1,27 @@
 (ns coras.events
   "Functions for creating and submitting machine events."
+  (:require [clojure.core.async :refer [chan >!!]])
   (:require (clj-time [core :as t]
                       [format :as f]))
   (:gen-class))
 
+(def event-re #"\{\"type\"\:\"(.+)\",\"machine_id\"\:\"(.+)\",\"timestamp\"\:\"(.+)\"\}")
 
 (defn- format-timestamp [ts]
   (let [formatter (f/formatters :date-time-no-ms)] 
     (f/unparse formatter ts)))
 
-(defn make-event
-  ([machine-id & {:keys [type timestamp]
-                  :or {type "CycleComplete"
-                       timestamp (t/now)}}]
-   {:type type
-    :machine_id machine-id
-    :timestamp (format-timestamp timestamp)}))
+(defn make-event [machine-id & {:keys [type timestamp]
+                                :or {type "CycleComplete"
+                                     timestamp (format-timestamp (t/now))}}]
+  {:type type
+   :machine_id machine-id
+   :timestamp timestamp})
 
 (defn event-from-line [line]
-  (let [[machine type] (clojure.string/split line #"\s")
-        event (make-event machine :type type)]
+  (let [[_ type machine-id timestamp] (re-matches event-re line)
+        event (make-event machine-id
+                          :type type
+                          :timestamp (f/parse (f/formatters :date-time-no-ms)
+                                              timestamp))]
     event))

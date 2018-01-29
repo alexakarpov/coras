@@ -2,17 +2,16 @@
   (:require [clojure.core.async :as a])
   (:require [clojure.data.json :as json])
   (:require [coras.driver :as driver])
-  (:require [coras.generators :as g])
   (:gen-class))
+
+(def stdin-reader
+  (java.io.BufferedReader. *in*))
 
 (defn -main
   [& args]
-  (println "Initializing a channel..")
-  (let [channel (a/chan 10)
-        events (g/generate-events "M1" 10)]
-    (doseq [e events]
-      (a/>!! channel e))
-    (driver/run channel)))
-
-(defn map-to-output-line [amap]
-  (json/write-str amap ))
+  (println "Creating an input channel from STDIN")
+  (let [in-chan (a/chan 10)]
+    (driver/run in-chan)
+    (doseq [line (line-seq stdin-reader)]
+      (println "read: " line)
+      (a/>!! in-chan line))))

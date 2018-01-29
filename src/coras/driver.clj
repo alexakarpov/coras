@@ -1,17 +1,15 @@
 (ns coras.driver
   (:require [clojure.core.async :as a])
-;  (:require [clojure.data.json :as json])
-;  (:require (coras [events :as e]))
+  (:require (coras [utils :as utils]))
+  (:require (coras [events :as e]))
   (:gen-class))
 
-(defn report-on-chan [msg chan]
-  (println (format "%s: channel size: %d" msg (.count (.buf chan)))))
+(defn append-to-journal [event & {:keys [out-file]
+                                  :or {out-file "/tmp/journal.out"}}]
+  (spit out-file (str event "\n") :append true))
 
-(defn log-it [event]
-  (spit "/tmp/journal.log" (str event "\n") :append true))
-
-(defn run [events-channel]
-  (loop [event (a/<!! events-channel)]
-    (report-on-chan :driver events-channel)
-    (spit "/tmp/journal.log" (str event "\n") :append true)
-    (recur (a/<!! events-channel))))
+(defn run [in-channel]
+  (let []
+    (a/go-loop [msg (a/<! in-channel)]
+      (append-to-journal msg)
+      (recur (a/<! in-channel)))))

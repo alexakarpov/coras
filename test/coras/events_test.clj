@@ -8,14 +8,14 @@
 
 (def time-regex #"(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})Z")
 
-(deftest event-generation-with-type-wo-ts
+(deftest event-generation-with-type-no-ts
   (testing "event created with passed type, without a timestamp"
     (let [event (make-event "M2" :type "Broke")]
       (is (and (= (:type event) "Broke")
                (= (:machine_id event) "M2")
                (re-matches time-regex (:timestamp event)))))))
 
-(deftest event-generation-test-ts
+(deftest event-generation-no-type-with-ts-test
   (testing "event created without a passed type, with a timestamp"
     (let [ts (t/now)
           ft (f/unparse (f/formatters :date-time-no-ms) ts)
@@ -38,3 +38,7 @@
                   :recorded_at _
                   :type "MachineCycled"} true
                  _ false)))))
+
+(deftest bad-event-test
+  (testing "bad evebt throws"
+    (is (thrown? Exception (process-event {:foo "bar"})))))

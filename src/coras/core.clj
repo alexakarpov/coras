@@ -1,4 +1,9 @@
-(ns coras.core
+(ns ^{:doc
+     "Core namespace, you'll land here with `lein repl`. Contains functions for working with the events processing machine:
+--- (submit-event <MachineID>)
+--- (machine-start)
+--- (machine-toggle-on-off)"}
+  coras.core
   (:require [clojure.core.async :as a :refer [go chan >!! <!!  timeout]])
   (:require (coras [driver :as driver]
                    [events :as events]
@@ -8,12 +13,16 @@
 ;; this is where the events channel is maitained during the interactive session
 (def in-ch (delay (chan 10)))
 
-;; user interface when running interactively in REPL
-(defn start []
+(defn close-channel []
+  (a/close! @in-ch))
+
+(defn machine-start []
+  "Start the machine consuming the events in the channel (on a thread-pool)"
   (driver/run-with-chan @in-ch))
 
-(defn stop []
-  (a/close! @in-ch))
+(defn machine-toggle-on-off []
+  "Pause/wake up the machine processing event"
+  (driver/toggle))
 
 (defn submit-event [machine-id]
   "Performs a blocking put of the event onto the interactive events channel"
@@ -22,7 +31,7 @@
       [:error :channel_full] ; so we don't *actually* block the REPL's main thread
       (>!! @in-ch (events/make-event machine-id)))))
 
-;; running witth events from STDIN
+;; running with events from STDIN
 (def stdin-reader
   (java.io.BufferedReader. *in*))
 
@@ -38,7 +47,6 @@
       (Thread/sleep 100))))
 
 (comment
-
   (submit-event "M1")
   (submit-event "M2")
   (submit-event "M3")
@@ -47,6 +55,6 @@
   @driver/late
   (def in-ch (delay (chan 10)))
   (driver/toggle)
-  (start)
-  (stop)
+  (machine-start)
+  (close-channel)
 )

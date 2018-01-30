@@ -1,12 +1,16 @@
 (ns coras.driver
+  ^{:doc
+    "This is where the Event-processing/writing machine lives. Behold, the core.async magic! Even though I prefer Actor model, this is kinda cool."
+    }
   (:require [clojure.core.async :as a])
   (:require [clojure.data.json :as json])
   (:require (coras [utils :as utils]))
   (:require (coras [events :as e]))
   (:gen-class))
 
-
+;; "pause" switch for the machine
 (def switch (atom true))
+;; the only bit of state we're tracking
 (def late (atom false))
 
 (defn toggle []
@@ -17,6 +21,7 @@
   (spit out-file (str event "\n") :append true))
 
 (defn run-with-chan [in-channel]
+  "the meat and potatoes"
   (let [long-timeout #(a/timeout 45000)
         short-timeout #(a/timeout 15000)]
     (a/go-loop [[msg ch] (a/alts! [in-channel

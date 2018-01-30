@@ -12,7 +12,7 @@ as long as you have Clojure and leiningen installed, *lein deps* and *lein compi
 
 **make clean** ; **make compile** ; **make run** ; **make check**
 
-, but that's boring as hell. The fun part is to run it interactively. Emacs with **CIDER** is recommended - *core.clj* has all the commands to play/evaluate.
+, but that's boring as hell - and, reading events from STDIN won't test the timeouts functionality! The fun part is to run it interactively. Emacs with **CIDER** is recommended - *core.clj* has all the commands to play/evaluate.
 
 ## Examples
 

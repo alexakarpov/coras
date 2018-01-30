@@ -10,7 +10,7 @@ as long as you have Clojure and leiningen installed, *lein deps* and *lein compi
 
 ### To run with provided resources/events.in:
 
-**make clean ** ; **make compile** ; **make run** ; **make check**
+**make clean** ; **make compile** ; **make run** ; **make check**
 
 , but that's boring as hell. The fun part is to run it interactively. Emacs with **CIDER** is recommended - *core.clj* has all the commands to play/evaluate.
 

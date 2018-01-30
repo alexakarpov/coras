@@ -43,5 +43,4 @@
           :machine_id mid
           :timestamp ts
           }
-         _ :bad
-         ))
+         _ (throw (Exception. (format "Unprocessable event: %s " event)))))

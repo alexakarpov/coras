@@ -56,7 +56,6 @@ coras.core=> (utils/report-on-chan @in-ch)
 "channel size: 0, closed?: false" ; size is 0, because all the events above have already been consumed by the machine. *tail -f /tmp/journal.out* for detail. Wait for 45+15 seconds to observe timeout-related messages:
 
 {"type":"MachineCycled","recorded_at":"2018-01-30T04:40:21Z","machine_id":"ABC","timestamp":"2018-01-30T04:40:07Z"}
-
 {"type":"MachineCycled","recorded_at":"2018-01-30T04:40:48Z","machine_id":"ABC","timestamp":"2018-01-30T04:40:48Z"}
 {"type":"MachineCycled","recorded_at":"2018-01-30T04:40:48Z","machine_id":"ABC","timestamp":"2018-01-30T04:40:48Z"}
 {"type":"MachineCycled","recorded_at":"2018-01-30T04:40:49Z","machine_id":"ABC","timestamp":"2018-01-30T04:40:49Z"}

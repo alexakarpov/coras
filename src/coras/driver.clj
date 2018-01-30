@@ -6,7 +6,7 @@
   (:gen-class))
 
 
-(def switch (atom false))
+(def switch (atom true))
 (def late (atom false))
 
 (defn toggle []
@@ -38,6 +38,7 @@
           (reset! late false)
           (->
            msg
+           e/process-event
            json/write-str
            append-to-journal)
           (recur (a/alts! [in-channel

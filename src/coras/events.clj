@@ -1,6 +1,6 @@
 (ns coras.events
   "Functions for creating and submitting machine events."
-  (:require [clojure.core.async :refer [chan >!!]])
+  (:require [clojure.core.match :refer [match]])
   (:require (clj-time [core :as t]
                       [format :as f]))
   (:gen-class))
@@ -32,3 +32,16 @@
 (defn alert-event [machine-id]
   (make-event machine-id
               :type "AlarmOpened"))
+
+(defn process-event [event]
+  (match event
+         {:type "CycleComplete"
+          :timestamp ts
+          :machine_id mid}
+         {:type "MachineCycled"
+          :recorded_at (format-timestamp (t/now))
+          :machine_id mid
+          :timestamp ts
+          }
+         _ :bad
+         ))

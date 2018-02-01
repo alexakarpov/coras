@@ -6,6 +6,10 @@
   (:require [clojure.core.async :as a])
   (:gen-class))
 
+(defonce cfg (clojure.edn/read-string (slurp "resources/config.edn")))
+
+(defn read-config [key] (cfg key))
+
 (defn generate-events [machine-id & {:keys [from]
                                      :or {from (t/now)}}]
   "Produces an infinite lazy sequence of events, starting at 'from', each 40 seconds from the previous one"

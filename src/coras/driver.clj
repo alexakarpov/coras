@@ -18,8 +18,9 @@
   (swap! switch not))
 
 (defn append-to-journal [event & {:keys [out-file]
-                                  :or {out-file "/tmp/journal.out"}}]
+                                  :or {out-file (utils/read-config :journal-file)}}]
   (spit out-file (str event "\n") :append true))
+
 
 (defn run-with-chan [in-channel]
   "the meat and potatoes"

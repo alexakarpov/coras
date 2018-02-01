@@ -1,11 +1,11 @@
 (ns coras.kafka
   (:require [clj-kafka.zk :as zk]
-            [clj-kafka.producer :refer :all]))
+            [clj-kafka.producer :refer :all]
+            [coras.utils :refer [read-config]]))
 
-(def kafka-config (clojure.edn/read-string (slurp "resources/kafka-config.edn")))
+(def p (producer (read-config :kafka-broker)))
 
-(def p (producer kafka-config))
-
+(def topic (read-config :journal-topic))
 (defn send-event [event]
-  (send-message p (message "ak_machine_events" (.getBytes event)))
+  (send-message p (message topic (.getBytes event)))
   event)

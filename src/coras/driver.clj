@@ -6,6 +6,7 @@
   (:require [clojure.data.json :as json])
   (:require (coras [utils :as utils]))
   (:require (coras [events :as e]))
+  (:require (coras [kafka :as k]))
   (:gen-class))
 
 ;; "pause" switch for the machine
@@ -45,6 +46,7 @@
            msg
            e/process-event
            json/write-str
+           k/send-event
            append-to-journal)
           (recur (a/alts! [in-channel
                            (long-timeout)])))))))

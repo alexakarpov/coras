@@ -7,6 +7,7 @@
                  [org.clojure/core.match "0.3.0-alpha5"]
                  [org.clojure/core.async "0.4.474"]
                  [org.clojure/data.json "0.2.6"]
+                 [clj-kafka "0.3.4"]
                  [clj-time "0.14.2"]]
   :main ^:skip-aot coras.core
   :target-path "target/%s"

@@ -1,5 +1,5 @@
 compile:
-	lein uberjar
+	lein with-profile prod uberjar
 clean:
 	cat /dev/null > /tmp/journal.out
 	lein clean

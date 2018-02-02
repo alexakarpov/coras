@@ -19,6 +19,7 @@
 
 (defn append-to-journal [event & {:keys [out-file]
                                   :or {out-file (utils/read-config :journal-file)}}]
+  (k/send-event event)
   (spit out-file (str event "\n") :append true))
 
 
@@ -34,11 +35,11 @@
         (do
           (if @late
             (do
-              (append-to-journal (e/alert-event (:machine_id msg)))
+              (append-to-journal (json/write-str (e/alert-event (:machine_id msg))))
               (recur (a/alts! [in-channel])))
             (do
               (reset! late true)
-              (append-to-journal (e/timeout-event (:machine_id msg)))
+              (append-to-journal (json/write-str (e/timeout-event (:machine_id msg))))
               (recur (a/alts! [in-channel
                                (short-timeout)])))))
         (do
@@ -47,7 +48,6 @@
            msg
            e/process-event
            json/write-str
-           k/send-event
            append-to-journal)
           (recur (a/alts! [in-channel
                            (long-timeout)])))))))

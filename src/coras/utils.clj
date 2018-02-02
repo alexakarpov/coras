@@ -1,14 +1,13 @@
 (ns coras.utils
   (:require (clj-time [core :as t]
-                      [format :as f]))
-  (:require [clojure.data.json :as json])
-  (:require (coras [events :as e]))
-  (:require [clojure.core.async :as a])
+                      [format :as f])
+            [clojure.data.json :as json]
+            [coras [events :as e]]
+            [config.core :refer [env]]
+            [clojure.core.async :as a])
   (:gen-class))
 
-(defonce cfg (clojure.edn/read-string (slurp "resources/config.edn")))
-
-(defn read-config [key] (cfg key))
+(defn read-config [key] (env key))
 
 (defn generate-events [machine-id & {:keys [from]
                                      :or {from (t/now)}}]

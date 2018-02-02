@@ -1,4 +1,6 @@
-{:kafka-broker {}
- :journal-topic ""
- :journal-file ""
+{:kafka-broker {"metadata.broker.list" "localhost:9092"
+                "serializer.class" "kafka.serializer.DefaultEncoder"
+                "partitioner.class" "kafka.producer.DefaultPartitioner"}
+ :journal-topic "ak_prod_events"
+ :journal-file "/tmp/journal.out"
 }

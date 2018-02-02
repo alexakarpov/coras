@@ -8,7 +8,10 @@
                  [org.clojure/core.async "0.4.474"]
                  [org.clojure/data.json "0.2.6"]
                  [clj-kafka "0.3.4"]
+                 [yogthos/config "1.1"]
                  [clj-time "0.14.2"]]
+  :profiles {:prod {:resource-paths ["config/prod"]}
+             :dev  {:resource-paths ["config/dev"]}}
   :main ^:skip-aot coras.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

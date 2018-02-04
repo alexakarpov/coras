@@ -19,6 +19,18 @@
     (for [i (iterate #(inc %) 0)]
       (e/make-event machine-id :timestamp (forty-seconds-later i)))))
 
+(defn count-in-channel [channel]
+  (cond
+    (nil? channel) :closed
+    (nil? (.buf channel)) :empty_unbuff
+    :else (.count (.buf channel))))
+
+(defn submit-event [channel machine-id]
+  (let [buffer (.buf channel)]
+    (if (>= (.count buffer) 10)
+      [:error :channel_full] ; so we don't *actually* block the REPL's main thread
+      (a/>!! channel (e/make-event machine-id)))))
+
 (defn report-on-chan [chan]
   (cond
     (nil? chan) "nil channel, make sure to open one"

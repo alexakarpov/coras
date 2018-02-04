@@ -16,9 +16,10 @@
 (defn close-channel []
   (a/close! @in-ch))
 
-(defn machine-start []
+(defn machine-start [& {:keys [channel]
+                        :or {channel @in-ch}}]
   "Start the machine consuming the events in the channel (on a thread-pool)"
-  (driver/run-with-chan @in-ch))
+  (driver/run-with-chan channel))
 
 (defn machine-toggle-on-off []
   "Pause/wake up the machine processing event"
@@ -26,10 +27,7 @@
 
 (defn submit-event [machine-id]
   "Performs a blocking put of the event onto the interactive events channel"
-  (let [buffer (.buf @in-ch)]
-    (if (>= (.count buffer) 10)
-      [:error :channel_full] ; so we don't *actually* block the REPL's main thread
-      (>!! @in-ch (events/make-event machine-id)))))
+  (utils/submit-event @in-ch machine-id))
 
 ;; running with events from STDIN
 (def stdin-reader
@@ -55,6 +53,6 @@
   @driver/late
   (def in-ch (delay (chan 10)))
   (driver/toggle)
-  (machine-start)
+  (machine-start :channel @in-ch)
   (close-channel)
 )

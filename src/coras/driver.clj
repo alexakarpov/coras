@@ -11,6 +11,11 @@
 
 ;; "pause" switch for the machine
 (def switch (atom true))
+
+;; kill switch to force machine to terminate
+(def kill (atom false))
+(defn dokill [] (reset! kill true))
+
 ;; the only bit of state we're tracking
 (def late (atom false))
 
@@ -29,25 +34,27 @@
         short-timeout #(a/timeout 15000)]
     (a/go-loop [[msg ch] (a/alts! [in-channel
                                    (long-timeout)])]
-      (while (not @switch) ; is the switch ON?
-        (Thread/sleep 1000))
-      (if (nil? msg) ; timeout occurred
+      (if (not @kill)
         (do
-          (if @late
+          (while (not @switch) ; is the switch ON?
+            (Thread/sleep 1000))
+          (if (nil? msg) ; timeout occurred
             (do
-              (append-to-journal (json/write-str (e/alert-event (:machine_id msg))))
-              (recur (a/alts! [in-channel])))
+              (if @late
+                (do
+                  (append-to-journal (json/write-str (e/alert-event (:machine_id msg))))
+                  (recur (a/alts! [in-channel])))
+                (do
+                  (reset! late true)
+                  (append-to-journal (json/write-str (e/timeout-event (:machine_id msg))))
+                  (recur (a/alts! [in-channel
+                                   (short-timeout)])))))
             (do
-              (reset! late true)
-              (append-to-journal (json/write-str (e/timeout-event (:machine_id msg))))
+              (reset! late false)
+              (->
+               msg
+               e/process-event
+               json/write-str
+               append-to-journal)
               (recur (a/alts! [in-channel
-                               (short-timeout)])))))
-        (do
-          (reset! late false)
-          (->
-           msg
-           e/process-event
-           json/write-str
-           append-to-journal)
-          (recur (a/alts! [in-channel
-                           (long-timeout)])))))))
+                               (long-timeout)])))))))))

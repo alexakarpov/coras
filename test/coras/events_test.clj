@@ -19,8 +19,7 @@
   (testing "event created without a passed type, with a timestamp"
     (let [ts (t/now)
           ft (f/unparse (f/formatters :date-time-no-ms) ts)
-          event (make-event "M1" :timestamp ts)
-          _ (println event)]
+          event (make-event "M1" :timestamp ts)]
       (is (match event
                  {:type "CycleComplete"
                   :timestamp ts

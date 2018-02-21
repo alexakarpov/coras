@@ -19,7 +19,7 @@ as long as you have Clojure and leiningen installed, *lein deps* and *lein compi
 the simplest interactive session looks like this:
 
 ```
-> lein repl
+> lein with-profile dev repl
 ...
 coras.core=>
 ```

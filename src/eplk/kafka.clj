@@ -1,4 +1,4 @@
-(ns coras.kafka
+(ns eplk.kafka
   (:require [clj-kafka.zk :as zk]
             [clj-kafka.producer :refer :all]
             [clj-kafka.consumer.zk :refer :all]

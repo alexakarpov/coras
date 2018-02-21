@@ -3,9 +3,9 @@
 --- (submit-event <MachineID>)
 --- (machine-start)
 --- (machine-toggle-on-off)"}
-  coras.core
+  eplk.core
   (:require [clojure.core.async :as a :refer [go chan >!! <!!  timeout]])
-  (:require (coras [driver :as driver]
+  (:require (eplk [driver :as driver]
                    [events :as events]
                    [utils :as utils]))
   (:gen-class))

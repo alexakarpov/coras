@@ -1,8 +1,8 @@
-(ns coras.utils
+(ns eplk.utils
   (:require (clj-time [core :as t]
                       [format :as f])
             [clojure.data.json :as json]
-            [coras [events :as e]]
+            [eplk [events :as e]]
             [config.core :refer [env]]
             [clojure.core.async :as a])
   (:gen-class))

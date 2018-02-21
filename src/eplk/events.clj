@@ -1,4 +1,4 @@
-(ns coras.events
+(ns eplk.events
   "Functions for creating and transforming machine events."
   (:require [clojure.core.match :refer [match]])
   (:require (clj-time [core :as t]

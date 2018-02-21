@@ -1,4 +1,4 @@
-(defproject coras "0.1.0-SNAPSHOT"
+(defproject eplk "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -17,5 +17,5 @@
              :dev  {:resource-paths ["config/dev"]
                     :plugins [[cider/cider-nrepl "0.16.0"]]}
              :uberjar {:aot :all}}
-  :main ^:skip-aot coras.core
+  :main ^:skip-aot eplk.core
   :target-path "target/%s")

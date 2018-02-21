@@ -1,12 +1,12 @@
-(ns coras.driver
+(ns eplk.driver
   ^{:doc
     "This is where the Event-processing/writing machine lives. Behold, the core.async magic! Even though I prefer Actor model, this is kinda cool."
     }
   (:require [clojure.core.async :as a])
   (:require [clojure.data.json :as json])
-  (:require (coras [utils :as utils]))
-  (:require (coras [events :as e]))
-  (:require (coras [kafka :as k]))
+  (:require (eplk [utils :as utils]))
+  (:require (eplk [events :as e]))
+  (:require (eplk [kafka :as k]))
   (:gen-class))
 
 ;; "pause" switch for the machine

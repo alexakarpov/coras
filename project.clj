@@ -8,6 +8,7 @@
                  [org.clojure/core.match "0.3.0-alpha5"]
                  [org.clojure/core.async "0.4.474"]
                  [org.clojure/data.json "0.2.6"]
+                 [ring "1.7.0-RC1"]
                  [metosin/compojure-api "2.0.0-alpha18"]
                  [clj-kafka "0.3.4"]
                  [yogthos/config "1.1"]

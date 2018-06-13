@@ -2,5 +2,5 @@
                 "serializer.class" "kafka.serializer.DefaultEncoder"
                 "partitioner.class" "kafka.producer.DefaultPartitioner"}
  :journal-topic "ak_test_events"
- :journal-file "/tmp/journal.out"
+ :journal-file "/tmp/dev_journal.out"
 }

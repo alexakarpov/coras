@@ -1,11 +1,11 @@
-(ns coras.integration-test
+(ns eplk.integration-test
   (:require [clojure.test :refer :all]
             [clojure.data.json :as json]
-            [coras.core :refer :all]
-            [coras.kafka :as k]
-            [coras.events :as e]
-            [coras.driver :as d]
-            [coras.utils :as u]
+            [eplk.core :refer :all]
+            [eplk.kafka :as k]
+            [eplk.events :as e]
+            [eplk.driver :as d]
+            [eplk.utils :as u]
             [clojure.core.async :as a]))
 
 (deftest test-end-to-end

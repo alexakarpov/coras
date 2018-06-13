@@ -1,10 +1,10 @@
-(ns coras.events-test
+(ns eplk.events-test
   (:require
    (clj-time [core :as t]
              [format :as f])
    [clojure.test :refer :all]
    [clojure.core.match :refer [match]]
-   [coras.events :refer :all]))
+   [eplk.events :refer :all]))
 
 (def time-regex #"(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})Z")
 

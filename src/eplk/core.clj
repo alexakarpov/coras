@@ -13,6 +13,11 @@
 ;; this is where the events channel is maitained during the interactive session
 (def in-ch (delay (chan 10)))
 
+(defn handler [request]
+  {:status 200
+   :headers {"Content-Type" "text/html"}
+   :body "Hello World"})
+
 (defn close-channel []
   (a/close! @in-ch))
 

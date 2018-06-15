@@ -12,7 +12,7 @@
 		 [ring "1.7.0-RC1"]
                  [yogthos/config "1.1"]
                  [clj-time "0.14.2"]
-                 [org.clojure/tools.nrepl "0.2.12"]]
+                 ]
   :plugins [[lein-pprint "1.2.0"]
             [cider/cider-nrepl "0.17.0"]
             [lein-ring "0.12.4"]]
@@ -22,9 +22,9 @@
                  :port 6710
                  }}
   :profiles {:prod {:resource-paths ^:replace ["config/prod"]
-                    :plugins [[cider/cider-nrepl "0.16.0"]]}
+                    :plugins [[cider/cider-nrepl "0.17.0"]]}
              :dev  {:resource-paths ["config/dev"]
-                    :plugins [[cider/cider-nrepl "0.16.0"]]}
+                    :plugins [[cider/cider-nrepl "0.17.0"]]}
              :uberjar {:aot :all}}
   :main ^:skip-aot eplk.core
   :target-path "target/%s")

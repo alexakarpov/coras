@@ -1,22 +1,20 @@
 (ns ^{:doc
-     "Core namespace, you'll land here with `lein repl`. Contains functions for working with the events processing machine:
+      "Core namespace, you'll land here with `lein repl`. Contains functions for working with the events processing machine:
 --- (submit-event <MachineID>)
 --- (machine-start)
 --- (machine-toggle-on-off)"}
-  eplk.core
-  (:require [clojure.core.async :as a :refer [go chan >!! <!!  timeout]])
+    eplk.core
   (:require (eplk [driver :as driver]
-                   [events :as events]
-                   [utils :as utils]))
+                  [events :as events]
+                  [utils :as utils]))
+  (:require [ring.util.http-response :refer :all]
+            [compojure.api.sweet :refer :all]
+            [schema.core :as s]
+            [clojure.core.async :as a :refer [go chan >!! <!!  timeout]])
   (:gen-class))
 
 ;; this is where the events channel is maitained during the interactive session
-(def in-ch (delay (chan 10)))
-
-(defn handler [request]
-  {:status 200
-   :headers {"Content-Type" "text/html"}
-   :body "Hello World"})
+(defonce in-ch (delay (chan 10)))
 
 (defn close-channel []
   (a/close! @in-ch))
@@ -38,16 +36,30 @@
 (def stdin-reader
   (java.io.BufferedReader. *in*))
 
-(defn -main
-  "Runs with an input channel attached to STDIN"
-  [& args]
-  (let [input-chan (chan 10)]
-    (driver/run-with-chan input-chan) ; sets up the consumer
-    (doseq [line (line-seq stdin-reader)] ; produce the line from STDIN
-      (>!! input-chan (events/event-from-line line)))
-    (while (false? (= 0 (.count (.buf input-chan))))
-      (println ".")
-      (Thread/sleep 100))))
+(s/defschema MachineCycled
+  {:machine_id s/Str
+   :timestamp Long
+   })
+
+(def app
+  (api
+   {:swagger
+    {:ui "/"
+     :spec "/swagger.json"
+     :data {:info {:title "Simple"
+                   :description "Compojure Api example"}
+            :tags [{:name "api", :description "some apis"}]}}}
+
+   (context "/api" []
+            :tags ["api"]
+            (POST "/event" []
+                  :return MachineCycled
+                  :body [event MachineCycled]
+                  :summary "echoes a MachineCycled event"
+                  (let [mid (:machine_id event)]
+                    (println "Submitting event for" mid "through the REST API endpoint")
+                    (submit-event mid)
+                    (ok event))))))
 
 (comment
   (submit-event "M1")
@@ -56,7 +68,6 @@
   (utils/report-on-chan @in-ch)
   @driver/switch
   @driver/late
-  (def in-ch (delay (chan 10)))
   (driver/toggle)
   (machine-start :channel @in-ch)
   (close-channel)

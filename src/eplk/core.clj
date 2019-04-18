@@ -5,8 +5,7 @@
 --- (machine-toggle-on-off)"}
     eplk.core
   (:require (eplk [driver :as driver]
-                  [events :as events]
-                  [utils :as utils]))
+                  ))
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
             [schema.core :as s]
@@ -30,12 +29,12 @@
 
 (defn submit-event [machine-id]
   "Performs a blocking put of the event onto the interactive events channel"
-  (utils/submit-event @in-ch machine-id))
+  (eplk.utils/submit-event @in-ch machine-id))
 
 ;; running with events from STDIN
 (def stdin-reader
   (java.io.BufferedReader. *in*))
-
+    (+ 2 2)
 (s/defschema MachineCycled
   {:machine_id s/Str
    :timestamp Long

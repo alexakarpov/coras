@@ -1,44 +1,31 @@
 (ns eplk.kafka
-  (:require [clj-kafka.zk :as zk]
-            [clj-kafka.producer :refer :all]
-            [clj-kafka.consumer.zk :refer :all]
-            [clj-kafka.admin :as admin]
-            [config.core :refer [env]]))
-
-(def p (producer (:kafka-broker env)))
+  (:require
+   [dvlopt.kafka       :as K]
+   [dvlopt.kafka.admin :as K.admin]
+   [dvlopt.kafka.in    :as K.in]
+   [dvlopt.kafka.out   :as K.out]
+   [config.core :refer [env]]))
 
 (def topic (:journal-topic env))
 
-(def config {"zookeeper.connect" "localhost:2181"
-             "group.id" "foo"
-             "auto.offset.reset" "smallest"
-             "auto.commit.enable" "false"})
+;; (defn create-topic [topic-name]
+;;   (with-open [admin (K.admin/admin)]
+;;     (K.admin/create-topics
+;;      admin
+;;      {topic-name {::K.admin/number-of-partitions 2
+;;                   ::K.admin/replication-factor   1
+;;                   ::K.admin/configuration        {"cleanup.policy" "compact"}}})
+;;     (println "Existing topics : " (keys @(K.admin/topics admin {::K/internal? false})))))
 
-(comment
-  (defmacro with-resources
-    [bindings close-fn & body]
-    (let [[x v & more] bindings]
-      `(let [~x ~v]
-         (try
-           ~(if-let [more (seq more)]
-              `(with-resources ~more ~close-fn ~@body)
-              `(do ~@body))
-           (finally
-             (~close-fn ~x)))))))
+(defn delete-topics [topic & topic-names]
+  (with-open [admin (K.admin/admin)]
+    (K.admin/delete-topics
+     admin
+     (cons topic topic-names))
+    (println "Remaining topics : " (keys @(K.admin/topics admin {::K/internal? false})))))
 
-(defn send-event [event]
-  (send-message p (message topic (.getBytes event)))
-  event)
+(defn list-topics []
+  (with-open [admin (K.admin/admin {:dvlopt.kafka/nodes [["kafka.alexakarpov.xyz" 9092]]})]
+    (keys @(K.admin/topics admin))))
 
-(defn ak-create-topic [tname]
-  (with-open [zk (admin/zk-client "127.0.0.1:2181")]
-    (if-not (admin/topic-exists? zk "test-topic")
-      (admin/create-topic zk tname
-                          {:partitions 3
-                           :replication-factor 1
-                           :config {"cleanup.policy" "compact"}}))))
-
-(defn ak-delete-topic [tname]
-  (with-open [zk (admin/zk-client "127.0.0.1:2181")]
-    (admin/delete-topic zk tname)))
-
+(list-topics)

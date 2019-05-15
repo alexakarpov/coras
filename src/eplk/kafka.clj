@@ -49,20 +49,8 @@
                                      "FAILURE"
                                      "SUCCESS")))))))
 
-(send-message 12 "hello")
-
-
-(try
-  (throw
-   (ex-info "The ice cream has melted!"
-            {:causes             #{:fridge-door-open :dangerously-high-temperature}
-             :current-temperature {:value 25 :unit :celsius}}))
-  (catch Exception e (ex-data e)))
-
-
-
 (defn list-topics []
-  (with-open [admin (K.admin/admin {:dvlopt.kafka/nodes [["kafka.alexakarpov.xyz" 9092]]})]
+  (with-open [admin (K.admin/admin {:dvlopt.kafka/nodes [[(:kafka-host env) 9092]]})]
     (keys @(K.admin/topics admin))))
 
 

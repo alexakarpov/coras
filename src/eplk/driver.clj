@@ -16,21 +16,27 @@
 (def kill (atom false))
 (defn dokill [] (reset! kill true))
 
-;; the only bit of state we're tracking
-(def late (atom false))
+;; this needs to be a groing collection of atoms - a map from machine_id to its state (late status)
+
+(def late {})
 
 (defn toggle []
   (swap! switch not))
 
 (defn append-to-journal [event & {:keys [out-file]
                                   :or {out-file (utils/read-config :journal-file)}}]
-  (k/send-event event)
+  (k/send-message 42 event)
   (spit out-file (str event "\n") :append true))
 
+(defn remember-machine [event]
+  (print "event: " event)
+  event)
 
+(defn late? [mid]
+  ())
 (defn run-with-chan [in-channel]
   "the meat and potatoes"
-  (let [long-timeout #(a/timeout 45000)
+  (let [long-timeout #(a/timeout 45000) ;; opens a channel that closes after 45; any takes after that return nil. If a take is blocking, it will block until channel is closed; if a take is non-blocking, it will execute a callback.
         short-timeout #(a/timeout 15000)]
     (a/go-loop [[msg ch] (a/alts! [in-channel
                                    (long-timeout)])]
@@ -38,23 +44,40 @@
         (do
           (while (not @switch) ; is the switch ON?
             (Thread/sleep 1000))
-          (if (nil? msg) ; timeout occurred
+          (if (not (= ch in-channel)) ; means msg in alts! is from a timeout channel, timeout occurred
             (do
-              (if @late
+              (if false
+                ;; we're already in a 'late' state, fire an alarm
                 (do
                   (append-to-journal (json/write-str (e/alert-event (:machine_id msg))))
                   (recur (a/alts! [in-channel])))
                 (do
-                  (reset! late true)
+                  ;(reset! late true)
                   (append-to-journal (json/write-str (e/timeout-event (:machine_id msg))))
                   (recur (a/alts! [in-channel
                                    (short-timeout)])))))
             (do
-              (reset! late false)
+              ;(reset! late false)
               (->
                msg
                e/process-event
+               remember-machine
                json/write-str
                append-to-journal)
               (recur (a/alts! [in-channel
                                (long-timeout)])))))))))
+
+
+(comment
+  (a/go-loop [seconds (atom 0)
+              add-seconds! #(swap! seconds + %)]
+    (println "Waiting 1 second")
+    (a/<! (a/timeout 1000))
+    (add-seconds! 1)
+    (println "Waiting 2 seconds")
+    (a/<! (a/timeout 2000))
+    (add-seconds! 2)
+    (println
+     (format "Waited %s seconds"
+             @seconds)))
+  )

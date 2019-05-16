@@ -16,7 +16,7 @@
                                                                "enable.auto.commit" false
                                                                "group.id"           "clj-group"}})]
     (K.in/register-for consumer
-                       [topic])
+                       [(:journal-topic env)])
     (doseq [record (K.in/poll consumer
                               {::K/timeout [5 :seconds]})]
       (println (format "Record %d @%d - Key = %d, Value = %s"

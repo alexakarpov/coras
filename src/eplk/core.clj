@@ -12,7 +12,7 @@
             [clojure.core.async :as a :refer [go chan >!! <!!  timeout]])
   (:gen-class))
 
-;; this is where the events channel is maitained during the interactive session
+;; this is where the events channel is maintained during the interactive session
 (defonce in-ch (delay (chan 10)))
 
 (defn close-channel []
@@ -64,9 +64,9 @@
   (submit-event "M1")
   (submit-event "M2")
   (submit-event "M3")
-  (utils/report-on-chan @in-ch)
+  (eplk.utils/report-on-chan @in-ch)
   @driver/switch
-  @driver/late
+  driver/late
   (driver/toggle)
   (machine-start :channel @in-ch)
   (close-channel)

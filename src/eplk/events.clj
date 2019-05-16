@@ -9,7 +9,7 @@
 (def event-re #"\{\"type\"\:\"(.+)\",\"machine_id\"\:\"(.+)\",\"timestamp\"\:\"(.+)\"\}")
 
 (defn- format-timestamp [ts]
-  (let [formatter (f/formatters :date-time-no-ms)] 
+  (let [formatter (f/formatters :date-time-no-ms)]
     (f/unparse formatter ts)))
 
 (defn make-event [machine-id & {:keys [type timestamp]
@@ -38,7 +38,6 @@
               :type "AlarmOpened"))
 
 (defn process-event [event]
-  "Processes the only type of event we handle, CycleComplete, producing a define MachineCycled tyoe of event, adding a :recorded_at key"
   (match event
          {:type "CycleComplete"
           :timestamp ts

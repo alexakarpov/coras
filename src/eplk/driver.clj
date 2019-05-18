@@ -16,9 +16,10 @@
 (def kill (atom false))
 (defn dokill [] (reset! kill true))
 
-;; this needs to be a groing collection of atoms - a map from machine_id to its state (late status)
 
-(def late {})
+;; this needs to be a growing collection of atoms - a map from machine_id to its state (late status)
+
+(def late (atom false))
 
 (defn toggle []
   (swap! switch not))
@@ -34,9 +35,10 @@
 
 (defn late? [mid]
   ())
+
 (defn run-with-chan [in-channel]
   "the meat and potatoes"
-  (let [long-timeout #(a/timeout 45000) ;; opens a channel that closes after 45; any takes after that return nil. If a take is blocking, it will block until channel is closed; if a take is non-blocking, it will execute a callback.
+  (let [long-timeout #(a/timeout 45000)
         short-timeout #(a/timeout 15000)]
     (a/go-loop [[msg ch] (a/alts! [in-channel
                                    (long-timeout)])]
@@ -44,15 +46,15 @@
         (do
           (while (not @switch) ; is the switch ON?
             (Thread/sleep 1000))
-          (if (not (= ch in-channel)) ; means msg in alts! is from a timeout channel, timeout occurred
+          (if (not (= ch in-channel)) ; msg in alts! is from a timeout channel
             (do
-              (if false
+              (if @late
                 ;; we're already in a 'late' state, fire an alarm
                 (do
                   (append-to-journal (json/write-str (e/alert-event (:machine_id msg))))
                   (recur (a/alts! [in-channel])))
                 (do
-                  ;(reset! late true)
+                  (reset! late true)
                   (append-to-journal (json/write-str (e/timeout-event (:machine_id msg))))
                   (recur (a/alts! [in-channel
                                    (short-timeout)])))))
@@ -66,7 +68,6 @@
                append-to-journal)
               (recur (a/alts! [in-channel
                                (long-timeout)])))))))))
-
 
 (comment
   (a/go-loop [seconds (atom 0)

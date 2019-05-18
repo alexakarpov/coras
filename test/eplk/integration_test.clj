@@ -12,7 +12,7 @@
   (testing "event is processed and logged to Kafka"
     (let [kafka-mock (a/chan 10)]
       ;; mocking Kafka interface, so instead of submittin to Kafka, we push the value into this channel
-      (with-redefs [k/send-event #(a/>!! kafka-mock %)]
+      (with-redefs [k/send-message #(a/>!! kafka-mock %1 %2)]
         (let [ch (a/chan 3)
               event (e/make-event "Machine1")
               _ (a/>!! ch event)]

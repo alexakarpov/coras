@@ -8,6 +8,7 @@
 
 (comment
   (config.core/reload-env)
+  (list-topics)
 
   (with-open [consumer (K.in/consumer {::K/nodes              [[(:kafka-host env) 9092]]
                                        ::K/deserializer.key   :long
@@ -52,6 +53,3 @@
 (defn list-topics []
   (with-open [admin (K.admin/admin {:dvlopt.kafka/nodes [[(:kafka-host env) 9092]]})]
     (keys @(K.admin/topics admin))))
-
-
-(list-topics)

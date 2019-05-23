@@ -10,20 +10,25 @@
 
 (deftest test-end-to-end
   (testing "event is processed and logged to Kafka"
+    (println "test starting in" (u/trep))
     (let [kafka-mock (a/chan 10)]
       ;; mocking Kafka interface, so instead of submittin to Kafka, we push the value into this channel
-      (with-redefs [k/send-message #(a/>!! kafka-mock %1 %2)]
-        (let [ch (a/chan 3)
-              event (e/make-event "Machine1")
-              _ (a/>!! ch event)]
-          ;; we start with no messages in Kafka
-          (is (= 0 (u/count-in-channel kafka-mock)))
+      (with-redefs [k/send-message #(a/>!! kafka-mock [%1 %2])]
+        (let [ch (a/chan 1)
+              event (e/make-event "Machine1")]
           ;; drumroll!!
+          (a/>!! ch event)
+          (println "test still in" (u/trep))
           (d/run-with-chan ch)
-          (let [[val ach] ;; read from our mocked Kafka
-                (a/alts!! [kafka-mock (a/timeout 1000)])]
+          (let [val (a/<!! kafka-mock)]
             ;; assert what we've logged to journal (Kafka) is the processed JSON-encoded event
             (is (= val
-                   (json/write-str (e/process-event event)))))
-          (d/dokill)
-          )))))
+                   [42 (json/write-str (e/process-event event))]))
+            (is (= (count @d/heartbeats) 1))
+            (is (= (count @d/alarms) 0)))
+          (d/clear-state-stop-machine ch)
+          (u/report-on-chan ch)
+          (def *k kafka-mock))))))
+
+(run-tests)
+(println "that was" (u/trep))

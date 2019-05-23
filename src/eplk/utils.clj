@@ -2,12 +2,15 @@
   (:require (clj-time [core :as t]
                       [format :as f])
             [clojure.data.json :as json]
-            [eplk [events :as e]]
+            [eplk.events :as e]
             [config.core :refer [env]]
             [clojure.core.async :as a])
   (:gen-class))
 
 (defn read-config [key] (env key))
+
+(defn trep []
+  (.getName (Thread/currentThread)))
 
 (defn generate-events [machine-id & {:keys [from]
                                      :or {from (t/now)}}]
@@ -28,7 +31,9 @@
   (let [buffer (.buf channel)]
     (if (>= (.count buffer) 10)
       [:error :channel_full] ; so we don't *actually* block the REPL's main thread
-      (a/>!! channel (e/make-event machine-id)))))
+      (do
+        (println "buffer has space, enq this event for" machine-id )
+        (a/>!! channel (e/make-event machine-id))))))
 
 (defn report-on-chan [chan]
   (cond

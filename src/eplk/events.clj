@@ -38,13 +38,15 @@
               :type "AlarmOpened"))
 
 (defn process-event [event]
+  (println (.getName (Thread/currentThread)) "- entering events/process-event:" event)
   (match event
          {:type "CycleComplete"
           :timestamp ts
           :machine_id mid}
-         {:type "MachineCycled"
-          :recorded_at (format-timestamp (t/now))
-          :machine_id mid
-          :timestamp ts
-          }
+         (do
+           {:type "MachineCycled"
+            :recorded_at (format-timestamp (t/now))
+            :machine_id mid
+            :timestamp ts
+            })
          _ (throw (Exception. (format "Unprocessable event: %s " event)))))

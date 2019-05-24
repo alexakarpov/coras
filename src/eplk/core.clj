@@ -18,6 +18,12 @@
    :timestamp Long
    })
 
+(s/defschema MachineCycledResponse
+  {:machine_id s/Str
+   :timestamp s/Str
+   :type s/Str
+   })
+
 ;; this is where the events channel is maintained during the interactive session
 (defonce in-ch (delay (chan 10)))
 
@@ -38,13 +44,12 @@
    (context "/api" []
             :tags ["api"]
             (POST "/event" []
-                  :return MachineCycled
+                  :return MachineCycledResponse
                   :body [event MachineCycled]
                   :summary "echoes a MachineCycled event"
                   (let [mid (:machine_id event)]
                     (println "Submitting event for" mid "through the REST API endpoint")
-                    (submit-event mid)
-                    (ok (assoc event :received :yes)))))))
+                    (ok (submit-event mid)))))))
 
 (defn close-channel []
   (a/close! @in-ch))

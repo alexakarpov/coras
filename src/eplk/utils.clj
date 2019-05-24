@@ -28,12 +28,14 @@
     :else (.count (.buf channel))))
 
 (defn submit-event [channel machine-id]
-  (let [buffer (.buf channel)]
+  (let [buffer (.buf channel)
+        event (e/make-event machine-id)]
     (if (>= (.count buffer) 10)
       [:error :channel_full] ; so we don't *actually* block the REPL's main thread
       (do
         (println "buffer has space, enq this event for" machine-id )
-        (a/>!! channel (e/make-event machine-id))))))
+        (a/>!! channel event)
+        event))))
 
 (defn report-on-chan [chan]
   (cond

@@ -37,7 +37,7 @@
    ::K.out/configuration {"client.id" "my-producer"}})
 
 (defn send-message [i body]
-  (println (format "%d received with %s" i body))
+  (println (format "sending key %d with message %s" i body))
   (with-open [producer (K.out/producer (producer-conf))]
     (K.out/send producer
                 {::K/topic "ak_test_events"

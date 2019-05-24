@@ -12,6 +12,8 @@
                                               go
                                               ]])
   (:require [clojure.data.json :as json])
+  (:require (clj-time [core :as t]
+                      [format :as f]))
   (:require [eplk.utils :as u :refer [read-config report-on-chan]])
   (:require [eplk.events :refer [process-event timeout-event alert-event]])
   (:require [eplk.kafka :as k])
@@ -25,11 +27,14 @@
 
 ;; kill switch to force machine to terminate
 (def kill (atom false))
+(defn dokill []
+  (swap! kill not ))
+
 (defn clear-state-stop-machine [ch] (do
-                  (reset! kill true)
-                  (swap! heartbeats {})
-                  (swap! alarms {})
-                  (a/close! ch)))
+                                      (reset! kill true)
+                                      (swap! heartbeats {})
+                                      (swap! alarms {})
+                                      (a/close! ch)))
 
 (defn toggle []
   (swap! pause not))
@@ -43,73 +48,75 @@
 (comment
   @heartbeats
   @alarms
-
-  (def x (go (let [c (a/chan)
-                   [v p] (a/alts! [c] :default 42)]
-               (println (format "v is %s p is %s" v p))))
-    )
 )
 
 (defn track-machine [id]
   (println "tracking" id)
-  (swap! heartbeats (fn [hs] (assoc hs (timeout 10000) id))))
+  (swap! heartbeats (fn [hs] (assoc hs (timeout 10000) id)))
+  id)
 
-(defn alarm-timeout [mid]
-  (do
-    (println "preparing alarm for " mid)
-    (swap! alarms (fn [as] (assoc as (timeout 5000) mid)))))
+(defn alarm-timeout [id]
+  (println "preparing alarm for" id)
+  (swap! alarms (fn [as] (assoc as (timeout 5000) id)))
+  id)
+
+(comment
+  (alts!! (concat
+           [@eplk.core/in-ch]
+           (keys @heartbeats)
+           (keys @alarms)))
+  (vals @heartbeats)
+  (vals @alarms)
+  )
 
 (defn run-with-chan [core-chan]
   "the meat and potatoes"
   (go
-    (println "go block - hello from" (u/trep))
     (loop [ch core-chan
            n 0]
       (do
         (println (u/trep) "- entered run-with-chan's go-loop, step" n (report-on-chan ch))
-        (Thread/sleep 1000)
         (let
-            [[msg ch] (alts! (concat
+            [_ (println (u/trep) "- calling alts!")
+             [msg ch] (alts! (concat
                               [ch]
                               (keys @heartbeats)
-                              (keys @alarms))
-                             :default 42)]
+                              (keys @alarms)))
+             _ (println "processing" msg "from" ch "at" (t/now) "at" (u/trep))]
           (cond
-            (nil? msg) (do
-                         (println "WTF " ch ", why do I get nil from you here? at" (u/trep))
-                         :wtf)
-            (= ch :default) :ok
-            (= ch core-chan) ; msg is from core channel
+            (= ch core-chan)
             (do ;; normal case
-              (println (u/trep) "- driver received event:" msg " from " ch)
               (track-machine (:machine_id msg))
               (->
                msg
                process-event
                json/write-str
                append-to-journal)
-              (println (format "%s recursing with %d heartbeats " (u/trep) (count (keys @heartbeats))))
               (recur core-chan (inc n)))
-            :else ; message is from a timeout channel
-            (let [late-machine (get @heartbeats ch)]
-              (println (u/trep) "- timeout received for " late-machine)
-              (assert (not (nil? late-machine)))
-              (Thread/sleep 2000)
-              (if (some #(= % late-machine) (vals @alarms))
-                ;; machine is already 'late', fire an alarm
-                (do
-                  (swap! alarms (fn [as] (dissoc as ch)))
-                  (->
-                   late-machine
-                   alert-event
-                   json/write-str
-                   append-to-journal)
-                  (recur core-chan (inc n)))
-                ;;+ this is the first breach
-                (do (->
-                     late-machine ; take the machine id
-                     alarm-timeout
-                     timeout-event ; build an event from it
-                     json/write-str ; transform event to json
-                     append-to-journal) ; log the json
-                    (recur core-chan (inc n)))))))))))
+            (some #(= % ch) (keys @heartbeats))
+            (do
+              (let [late-machine (get @heartbeats ch)]
+                (swap! heartbeats #(dissoc % ch))
+                (println late-machine "is late")
+                (->
+                 late-machine ; take the machine id
+                 alarm-timeout ; create an alarm for it
+                 timeout-event ; build an event from it
+                 json/write-str ; transform event to json
+                 append-to-journal)) ; log the json
+              (recur core-chan (inc n)))
+            :else
+            (let [late-machine (get @alarms ch)]
+              (assert (some #(= % ch) (keys @alarms)))
+              (swap! alarms #(dissoc % ch))
+              (a/close! ch)
+              (Thread/sleep 1000)
+              ;; machine is already 'late', fire an alarm
+              (do
+                (swap! alarms (fn [as] (dissoc as ch)))
+                (->
+                 late-machine
+                 alert-event
+                 json/write-str
+                 append-to-journal)
+                (recur core-chan (inc n))))))))))

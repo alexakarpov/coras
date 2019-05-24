@@ -5,9 +5,6 @@
                       [format :as f]))
   (:gen-class))
 
-;; regular expression matching the incoming events schema.
-(def event-re #"\{\"type\"\:\"(.+)\",\"machine_id\"\:\"(.+)\",\"timestamp\"\:\"(.+)\"\}")
-
 (defn- format-timestamp [ts]
   (let [formatter (f/formatters :date-time-no-ms)]
     (f/unparse formatter ts)))
@@ -18,14 +15,6 @@
   {:type type
    :machine_id machine-id
    :timestamp timestamp})
-
-(defn event-from-line [line]
-  "creates a map of event data from it's string representation"
-  (let [[_ type machine-id timestamp] (re-matches event-re line)
-        event (make-event machine-id
-                          :type type
-                          :timestamp timestamp)]
-    event))
 
 (defn timeout-event [machine-id]
   "Creates a defined timeout-type event "
@@ -38,7 +27,6 @@
               :type "AlarmOpened"))
 
 (defn process-event [event]
-  (println (.getName (Thread/currentThread)) "- entering events/process-event:" event)
   (match event
          {:type "CycleComplete"
           :timestamp ts

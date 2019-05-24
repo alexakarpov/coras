@@ -1,8 +1,5 @@
 (ns ^{:doc
-      "Core namespace, you'll land here with `lein repl`. Contains functions for working with the events processing machine:
---- (submit-event <MachineID>)
---- (machine-start)
---- (machine-toggle-on-off)"}
+      "Core namespace, stuff that is picked up by 'lein ring server"}
     eplk.core
   (:require [eplk.driver :as driver]
             [eplk.events :as events]
@@ -57,28 +54,3 @@
                   (let [mid (:machine_id event)]
                     (println "Submitting event for" mid "through the REST API endpoint")
                     (ok (submit-event mid)))))))
-
-(defn close-channel []
-  (a/close! @in-ch))
-
-(defn machine-toggle-on-off []
-  "Pause/wake up the machine processing event"
-  (driver/toggle))
-
-;; running with events from STDIN
-(def stdin-reader
-  (java.io.BufferedReader. *in*))
-
-(comment
-
-  (do (submit-event "M1")
-      (submit-event "M2")
-      (submit-event "M3"))
-  (utils/report-on-chan @in-ch)
-  (<!! @in-ch)
-  @driver/pause
-  (driver/toggle)
-  ;; launch with lein ring server. and start this
-  (machine-start :channel @in-ch)
-  (driver/close-channel)
-)

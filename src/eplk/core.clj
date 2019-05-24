@@ -27,6 +27,13 @@
 ;; this is where the events channel is maintained during the interactive session
 (defonce in-ch (delay (chan 10)))
 
+(defn machine-start [& {:keys [channel]
+                        :or {channel @in-ch}}]
+  "Start the machine consuming the events in the channel (on a thread-pool)"
+  (driver/run-with-chan channel))
+
+(machine-start :channel @in-ch)
+
 (defn submit-event [machine-id]
   "Performs a blocking put of the event onto the interactive events channel"
   (println "entering eplk.core/submit-event")
@@ -53,11 +60,6 @@
 
 (defn close-channel []
   (a/close! @in-ch))
-
-(defn machine-start [& {:keys [channel]
-                        :or {channel @in-ch}}]
-  "Start the machine consuming the events in the channel (on a thread-pool)"
-  (driver/run-with-chan channel))
 
 (defn machine-toggle-on-off []
   "Pause/wake up the machine processing event"

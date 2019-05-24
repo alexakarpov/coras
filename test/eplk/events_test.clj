@@ -15,6 +15,11 @@
                (= (:machine_id event) "M2")
                (re-matches time-regex (:timestamp event)))))))
 
+;; (deftest failing
+;;   (testing "failure"
+;;     (is (= true
+;;            false))))
+
 (deftest event-generation-no-type-with-ts-test
   (testing "event created without a passed type, with a timestamp"
     (let [ts (t/now)
@@ -41,3 +46,5 @@
 (deftest bad-event-test
   (testing "bad evebt throws"
     (is (thrown? Exception (process-event {:foo "bar"})))))
+
+(run-tests)

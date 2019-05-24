@@ -4,57 +4,82 @@
     }
   (:require [clojure.core.async :as a])
   (:require [clojure.data.json :as json])
-  (:require (eplk [utils :as utils]))
-  (:require (eplk [events :as e]))
-  (:require (eplk [kafka :as k]))
+  (:require (clj-time [core :as t]))
+  (:require [eplk.utils :as u])
+  (:require [eplk.events :refer [process-event timeout-event alert-event]])
+  (:require [eplk.kafka :as k])
   (:gen-class))
 
-;; "pause" switch for the machine
-(def switch (atom true))
+(def heartbeats (atom {}))
+(def alarms (atom {}))
 
-;; kill switch to force machine to terminate
-(def kill (atom false))
-(defn dokill [] (reset! kill true))
-
-;; the only bit of state we're tracking
-(def late (atom false))
-
-(defn toggle []
-  (swap! switch not))
+(defn clear-state-stop-machine [ch] (do
+                                      (swap! heartbeats {})
+                                      (swap! alarms {})
+                                      (a/close! ch)))
 
 (defn append-to-journal [event & {:keys [out-file]
-                                  :or {out-file (utils/read-config :journal-file)}}]
-  (k/send-event event)
+                                  :or {out-file (u/read-config :journal-file)}}]
+  (k/send-message 42 event)
   (spit out-file (str event "\n") :append true))
 
+(defn track-machine [id]
+  "creates a timeout channel and store it in the heartbeats map"
+  (println "tracking" id)
+  (swap! heartbeats (fn [hs] (assoc hs (a/timeout 10000) id)))
+  id)
 
-(defn run-with-chan [in-channel]
+(defn alarm-timeout [id]
+  "create a timeout channel for id and store it in the heartbeats map"
+  (println "preparing alarm for" id)
+  (swap! alarms (fn [as] (assoc as (a/timeout 5000) id)))
+  id)
+
+(defn run-with-chan [core-chan]
   "the meat and potatoes"
-  (let [long-timeout #(a/timeout 45000)
-        short-timeout #(a/timeout 15000)]
-    (a/go-loop [[msg ch] (a/alts! [in-channel
-                                   (long-timeout)])]
-      (if (not @kill)
-        (do
-          (while (not @switch) ; is the switch ON?
-            (Thread/sleep 1000))
-          (if (nil? msg) ; timeout occurred
-            (do
-              (if @late
-                (do
-                  (append-to-journal (json/write-str (e/alert-event (:machine_id msg))))
-                  (recur (a/alts! [in-channel])))
-                (do
-                  (reset! late true)
-                  (append-to-journal (json/write-str (e/timeout-event (:machine_id msg))))
-                  (recur (a/alts! [in-channel
-                                   (short-timeout)])))))
-            (do
-              (reset! late false)
+  (a/go
+    (loop [ch core-chan
+           n 0]
+      (let
+          [[msg ch] (a/alts! (concat
+                            [ch]
+                            (keys @heartbeats)
+                            (keys @alarms)))
+           _ (println "processing" msg "from" ch "at" (t/now) "at" (u/trep))]
+        (cond
+          (= ch core-chan)
+          (do ;; normal case
+            (track-machine (:machine_id msg))
+            (->
+             msg
+             process-event
+             json/write-str
+             append-to-journal)
+            (recur core-chan (inc n)))
+          (some #(= % ch) (keys @heartbeats))
+          (do
+            (let [late-machine (get @heartbeats ch)]
+              (swap! heartbeats #(dissoc % ch))
+              (println late-machine "is late")
               (->
-               msg
-               e/process-event
+               late-machine ; take the machine id
+               alarm-timeout ; create an alarm for it
+               timeout-event ; build an event from it
+               json/write-str ; transform event to json
+               append-to-journal)) ; log the json
+            (recur core-chan (inc n)))
+          :else
+          (let [late-machine (get @alarms ch)]
+            (assert (some #(= % ch) (keys @alarms)))
+            (swap! alarms #(dissoc % ch))
+            (a/close! ch)
+            (Thread/sleep 1000)
+            ;; machine is already 'late', fire an alarm
+            (do
+              (swap! alarms (fn [as] (dissoc as ch)))
+              (->
+               late-machine
+               alert-event
                json/write-str
                append-to-journal)
-              (recur (a/alts! [in-channel
-                               (long-timeout)])))))))))
+              (recur core-chan (inc n)))))))))

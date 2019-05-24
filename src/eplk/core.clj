@@ -1,47 +1,43 @@
 (ns ^{:doc
-      "Core namespace, you'll land here with `lein repl`. Contains functions for working with the events processing machine:
---- (submit-event <MachineID>)
---- (machine-start)
---- (machine-toggle-on-off)"}
+      "Core namespace, stuff that is picked up by 'lein ring server"}
     eplk.core
-  (:require (eplk [driver :as driver]
-                  ))
+  (:require [eplk.driver :as driver]
+            [eplk.events :as events]
+            [eplk.utils :as utils])
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
             [schema.core :as s]
             [clojure.core.async :as a :refer [go chan >!! <!!  timeout]])
   (:gen-class))
 
-;; this is where the events channel is maitained during the interactive session
-(defonce in-ch (delay (chan 10)))
+(s/defschema MachineCycled
+  {:machine_id s/Str
+   :timestamp Long
+   })
 
-(defn close-channel []
-  (a/close! @in-ch))
+(s/defschema MachineCycledResponse
+  {:machine_id s/Str
+   :timestamp s/Str
+   :type s/Str
+   })
+
+;; this is where the events channel is maintained during the interactive session
+(defonce in-ch (delay (chan 10)))
 
 (defn machine-start [& {:keys [channel]
                         :or {channel @in-ch}}]
   "Start the machine consuming the events in the channel (on a thread-pool)"
   (driver/run-with-chan channel))
 
-(defn machine-toggle-on-off []
-  "Pause/wake up the machine processing event"
-  (driver/toggle))
+(machine-start :channel @in-ch)
 
 (defn submit-event [machine-id]
   "Performs a blocking put of the event onto the interactive events channel"
-  (eplk.utils/submit-event @in-ch machine-id))
-
-;; running with events from STDIN
-(def stdin-reader
-  (java.io.BufferedReader. *in*))
-    (+ 2 2)
-(s/defschema MachineCycled
-  {:machine_id s/Str
-   :timestamp Long
-   })
+  (println "entering eplk.core/submit-event")
+  (utils/submit-event @in-ch machine-id))
 
 (def app
-  (api
+  (api ;; macro that builds the whole REST API, which is what you see on port 300, fully equipped with a web-client to make the api requests.
    {:swagger
     {:ui "/"
      :spec "/swagger.json"
@@ -52,22 +48,9 @@
    (context "/api" []
             :tags ["api"]
             (POST "/event" []
-                  :return MachineCycled
+                  :return MachineCycledResponse
                   :body [event MachineCycled]
                   :summary "echoes a MachineCycled event"
                   (let [mid (:machine_id event)]
                     (println "Submitting event for" mid "through the REST API endpoint")
-                    (submit-event mid)
-                    (ok event))))))
-
-(comment
-  (submit-event "M1")
-  (submit-event "M2")
-  (submit-event "M3")
-  (utils/report-on-chan @in-ch)
-  @driver/switch
-  @driver/late
-  (driver/toggle)
-  (machine-start :channel @in-ch)
-  (close-channel)
-)
+                    (ok (submit-event mid)))))))

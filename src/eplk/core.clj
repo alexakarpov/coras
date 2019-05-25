@@ -30,11 +30,9 @@
   "Start the machine consuming the events in the channel (on a thread-pool)"
   (driver/run-with-chan channel))
 
-(machine-start :channel @in-ch)
 
 (defn submit-event [machine-id]
   "Performs a blocking put of the event onto the interactive events channel"
-  (println "entering eplk.core/submit-event")
   (utils/submit-event @in-ch machine-id))
 
 (def app
@@ -55,3 +53,7 @@
                   (let [mid (:machine_id event)]
                     (println "Submitting event for" mid "through the REST API endpoint")
                     (ok (submit-event mid)))))))
+
+;; (defn -main []
+;;   (println "eplk.core./-main starting the machine")
+;;   (machine-start :channel @in-ch))

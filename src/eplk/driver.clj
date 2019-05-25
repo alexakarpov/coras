@@ -13,6 +13,9 @@
 (def heartbeats (atom {}))
 (def alarms (atom {}))
 
+(comment
+  (a/<!! @eplk.core/in-ch)
+  )
 (defn clear-state-stop-machine [ch] (do
                                       (swap! heartbeats {})
                                       (swap! alarms {})

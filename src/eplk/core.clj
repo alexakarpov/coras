@@ -13,6 +13,7 @@
 (s/defschema MachineCycled
   {:machine_id s/Str
    :timestamp Long
+   :description "An event reporting an item was created by a machine with the id contained here, at yhe time reported"
    })
 
 (s/defschema MachineCycledResponse

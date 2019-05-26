@@ -22,6 +22,7 @@
                  }}
   :profiles {:prod {:resource-paths ^:replace ["config/prod"]}
              :dev  {:resource-paths ["config/dev"]}
-             :uberjar {:aot :all}}
-  :main ^:skip-aot eplk.core
+             :uberjar {:aot :all
+                       :main eplk.core}}
+  :uberjar-name "server.jar"
   :target-path "target/%s")

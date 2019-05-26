@@ -4,6 +4,7 @@
   (:require [eplk.driver :as driver]
             [eplk.events :as events]
             [eplk.utils :as utils])
+  (:require [ring.adapter.jetty :refer [run-jetty]])
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
             [schema.core :as s]
@@ -53,6 +54,8 @@
                     (println "Submitting event for" mid "through the REST API endpoint")
                     (ok (submit-event mid)))))))
 
-(defn -main []
+(defn -main [& args]
   (println "eplk.core./-main starting the machine")
-  (machine-start :channel @in-ch))
+  (machine-start :channel @in-ch)
+  (println "now launching the web app")
+  (run-jetty app {:port (Integer/valueOf (or (System/getenv "port") "3000"))}))
